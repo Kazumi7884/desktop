@@ -12,6 +12,10 @@ on:
         required: true
         type: string
 
+env:
+  RELEASE_BRANCH: ${{ inputs.release-branch }}
+  BUILD_VERSION: ${{ inputs.build-version }}
+
 jobs:
   mac-build:
     name: Unify macOS (Universal)
@@ -73,7 +77,9 @@ jobs:
           npm install
 
       - name: Load surfer CI setup
-        run: npm run surfer -- ci --brand ${{ inputs.release-branch }} --display-version ${{ inputs.build-version }}
+        run: |
+          case "$RELEASE_BRANCH" in release|twilight) ;; *) echo "Invalid release branch" >&2; exit 1 ;; esac
+          npm run surfer -- ci --brand "$RELEASE_BRANCH" --display-version "$BUILD_VERSION"
 
       - name: Download Firefox source and dependencies
         run: npm run download
@@ -189,9 +195,9 @@ jobs:
           cd engine
           ./mach python -m mozbuild.action.make_dmg \
             --volume-name "${{ env.APP_NAME }}" \
-            --background ./browser/branding/${{ inputs.release-branch }}/background.png \
-            --icon ./browser/branding/${{ inputs.release-branch }}/firefox.icns \
-            --dsstore ./browser/branding/${{ inputs.release-branch }}/dsstore \
+            --background "./browser/branding/$RELEASE_BRANCH/background.png" \
+            --icon "./browser/branding/$RELEASE_BRANCH/firefox.icns" \
+            --dsstore "./browser/branding/$RELEASE_BRANCH/dsstore" \
             ./obj-x86_64-apple-darwin/dist/ ../zen-macOS-universal-temp.dmg
 
       - name: Remove sensitive information
@@ -259,3 +265,4 @@ jobs:
           retention-days: 5
           name: macos_update_manifest
           path: ./dist/update
+
