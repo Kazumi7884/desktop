@@ -39,6 +39,9 @@ on:
         default: 'release'
         type: 'string'
 
+env:
+  UPDATE_BRANCH: ${{ inputs.update_branch }}
+
 jobs:
   debug-inputs:
     name: Debug inputs
@@ -48,11 +51,11 @@ jobs:
         run: |
           echo "create_release: ${{ inputs.create_release }}"
           echo "update_version: ${{ inputs.update_version }}"
-          echo "update_branch: ${{ inputs.update_branch }}"
+          case "$UPDATE_BRANCH" in release|twilight) ;; *) echo "Invalid update_branch" >&2; exit 1 ;; esac
+          echo "update_branch: $UPDATE_BRANCH"
           echo "GITHUB_REPOSITORY: ${{ github.repository }}"
           echo "GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}"
           echo "GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}"
-          echo "GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}"
 
   buildid:
     name: Generate build ID
@@ -107,7 +110,7 @@ jobs:
           git branch
           git status
           git branch --show-current
-          branch="${{ inputs.update_branch }}"
+          branch="$UPDATE_BRANCH"
           if [[ $branch == "twilight" ]]; then
             branch="dev"
           elif [[ $branch == "release" ]]; then
@@ -153,12 +156,12 @@ jobs:
       - name: Bump version
         if: ${{ inputs.update_version && inputs.update_branch == 'release' }}
         run: |
-          npm run surfer -- ci --brand ${{ inputs.update_branch }} --bump prerelease
+          npm run surfer -- ci --brand "$UPDATE_BRANCH" --bump prerelease
 
       - name: Bump version without new version
         if: ${{ !inputs.update_version || inputs.update_branch == 'twilight' }}
         run: |
-          npm run surfer -- ci --brand ${{ inputs.update_branch }}
+          npm run surfer -- ci --brand "$UPDATE_BRANCH"
 
       - name: Debug
         run: |
@@ -212,7 +215,7 @@ jobs:
 
       - name: Activate Surfer CLI
         run: |
-          npm run surfer -- ci --brand ${{ inputs.update_branch }} --display-version ${{ needs.build-data.outputs.version }}
+          npm run surfer -- ci --brand "$UPDATE_BRANCH" --display-version ${{ needs.build-data.outputs.version }}
 
       - name: Check version
         run: |
@@ -254,7 +257,7 @@ jobs:
           npm install
 
       - name: Load Surfer CI setup
-        run: npm run surfer -- ci --brand ${{ inputs.update_branch }} --display-version ${{ needs.build-data.outputs.version }}
+        run: npm run surfer -- ci --brand "$UPDATE_BRANCH" --display-version ${{ needs.build-data.outputs.version }}
 
       - name: Download Firefox source and dependencies
         run: npm run download --verbose
@@ -387,10 +390,10 @@ jobs:
           export ARCH=${{ matrix.arch }}
           UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|desktop|latest|zen-$ARCH.AppImage.zsync"
           rm AppDir/.DirIcon || true
-          cp configs/branding/${{ inputs.update_branch }}/logo128.png AppDir/usr/share/icons/hicolor/128x128/apps/zen.png
-          cp configs/branding/${{ inputs.update_branch }}/logo128.png AppDir/zen.png && ln -s zen.png AppDir/.DirIcon
+          cp "configs/branding/$UPDATE_BRANCH/logo128.png" AppDir/usr/share/icons/hicolor/128x128/apps/zen.png
+          cp "configs/branding/$UPDATE_BRANCH/logo128.png" AppDir/zen.png && ln -s zen.png AppDir/.DirIcon
 
-          if [ "${{ inputs.update_branch }}" = "twilight" ]; then
+          if [ "$UPDATE_BRANCH" = "twilight" ]; then
             sed -i -e 's/Name=Zen Browser/Name=Zen Twilight/g' AppDir/zen.desktop
             sed -i -e 's/StartupWMClass=zen/StartupWMClass=zen-twilight/g' AppDir/zen.desktop
           fi
@@ -743,3 +746,4 @@ jobs:
           base: master
           git-token: ${{ secrets.DEPLOY_KEY }}
           delete-branch: true
+
