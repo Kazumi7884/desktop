@@ -746,4 +746,3 @@ jobs:
           base: master
           git-token: ${{ secrets.DEPLOY_KEY }}
           delete-branch: true
-

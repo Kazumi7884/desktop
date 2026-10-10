@@ -124,4 +124,3 @@ jobs:
             merged.profdata
             en-US.log
           name: windows-profdata-${{ matrix.arch == 'aarch64' && 'arm64' || matrix.arch }}
-

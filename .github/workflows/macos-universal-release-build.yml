@@ -265,4 +265,3 @@ jobs:
           retention-days: 5
           name: macos_update_manifest
           path: ./dist/update
-

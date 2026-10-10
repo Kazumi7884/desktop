@@ -168,4 +168,3 @@ jobs:
           retention-days: 5
           name: linux_update_manifest_${{ matrix.arch }}
           path: ./dist/update
-
