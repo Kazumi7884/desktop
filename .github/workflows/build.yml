@@ -460,7 +460,9 @@ jobs:
 
   release:
     if: ${{ inputs.create_release || inputs.update_branch == 'twilight' }}
-    permissions: write-all
+    permissions:
+      contents: read
+      actions: read
     name: Release
     needs: [build-data, linux, windows-step-3, check-release, mac-uni, appimage, source, lint, stop-self-hosted]
     runs-on: ubuntu-latest
@@ -604,7 +606,8 @@ jobs:
 
   prepare-flatpak:
     if: ${{ inputs.create_release && inputs.update_branch == 'release' }}
-    permissions: write-all
+    permissions:
+      contents: read
     name: Prepare Flatpak
     needs: [release, linux, build-data]
     runs-on: ubuntu-latest
@@ -663,7 +666,8 @@ jobs:
 
   release-flatpak:
     if: ${{ inputs.create_release && inputs.update_branch == 'release' }}
-    permissions: write-all
+    permissions:
+      contents: read
     name: Release Flatpak
     needs: [prepare-flatpak, build-data]
     runs-on: ubuntu-latest
