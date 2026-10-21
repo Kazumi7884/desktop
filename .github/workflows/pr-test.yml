@@ -12,6 +12,13 @@ jobs:
   pr-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Guard release job permissions
+        shell: bash
+        run: |
+          if grep -F "write-all" .github/workflows/build.yml .github/workflows/twilight-release-schedule.yml; then
+            echo "Release workflows must not inherit write-all permissions" >&2
+            exit 1
+          fi
       - name: Fail on GITHUB_TOKEN debug logging
         shell: bash
         run: |
